@@ -2,6 +2,7 @@ import co.uk.gresearch.aws.glue.Util
 import com.amazonaws.services.glue.{DynamicFrame, GlueContext}
 import com.amazonaws.services.glue.util.{GlueArgParser, JsonOptions}
 import org.apache.spark.SparkContext
+import org.apache.spark.sql.DataFrame
 
 object S3SparkTest {
 
@@ -29,7 +30,19 @@ object S3SparkTest {
     val inputPaths = Set(infilePath)
     val source = glueContext.getSourceWithFormat("s3", JsonOptions(Map("paths" -> inputPaths)),format = "csv")
     val df: DynamicFrame = source.getDynamicFrame()
+    println("about to map roots")
+    val h = df.map{r =>
+      println(s"printing root: ${r.getRoot}");
+      r}
+
+    println("about to print foreach")
+    val hdf =  h.toDF()
+    hdf.foreach(f => println(f))
+    println("counting...")
+    println(hdf.count())
+    println("about to helper print")
     Util.help(df)
+    println("about to show")
     df.show(1)
 
     val output = glueContext.getSinkWithFormat("s3",JsonOptions(Map("path" -> outputPath)),format = "parquet")
